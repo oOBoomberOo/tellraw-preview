@@ -3,6 +3,7 @@ import { TextEditor, DecorationOptions, DecorationRangeBehavior, window, Range, 
 
 const annotationDecoration = window.createTextEditorDecorationType({
 	after: {
+		margin: '0 0 0 1rem',
 		textDecoration: 'none'
 	},
 	rangeBehavior: DecorationRangeBehavior.ClosedOpen
@@ -30,42 +31,34 @@ export class LineAnnotation implements Disposable {
 
 		const lines = editor.document.lineCount || 0;
 
-		// const decorations: DecorationOptions[] = [];
+		const decorations: DecorationOptions[] = [];
 		for (let i = 0; i < lines; i++) {
 			const line = editor.document.lineAt(i);
 			const content = line.text;
 			
 			if (content.startsWith("tellraw")) {
-				// console.log(content);
 				const matches = content.match(/\[.+\]|{.+}|".+"/);
 				const messages: Item[] = matches?.map(jsonMapper) as Item[];
-				let start = line.range.end;
+				const position = line.range.end;
 
 				for (const message of messages) {
-					let decoration: DecorationOptions[] = [];
-					
-					decoration.push({
+					const content = buildMessage(message);
+					const range = new Range(position, position);
+					const decoration: DecorationOptions = {
 						renderOptions: {
 							after: {
-								contentText: " => ",
+								contentText: `=> ${content}`,
 								color: "gray"
 							}
 						},
-						range: editor.document.validateRange(
-							new Range(start, start)
-						)
-					});
-					
-					const [pos, style] = applyStyle(message, start, editor);
-					// start = pos;
-					// console.log(style);
-					decoration.push(...style);
-					
-					// decorations.push(...decoration);
-					editor.setDecorations(annotationDecoration, decoration);
+						range
+					};
+
+					decorations.push(decoration);
 				}
 			}
 		}
+		editor.setDecorations(annotationDecoration, decorations);
 	}
 
 	clearAnnotations(editor: TextEditor | undefined) {
@@ -89,44 +82,41 @@ function jsonMapper(value: string) {
 interface Item {
 	text?: string;
 	translated?: string;
+	score?: { name: string, objective: string, value?: string};
+	selector?: string;
 	extras?: Item[];
-	color?: string;
-	underlined?: boolean;
-	bold?: boolean;
 }
 
-function applyStyle(value: Item | Item[], start: vscode.Position, editor: TextEditor): [vscode.Position, DecorationOptions[]] {
+function buildMessage(value: Item | Item[]): string {
 	if (Array.isArray(value)) {
-		const decorations = [];
-		let pos = start;
-		for (const item of value) {
-			const [new_pos, decoration] = applyStyle(item, pos, editor);
-			pos = new_pos;
-			decorations.push(...decoration);
-		}
-
-		return [pos, decorations];
+		return value.map(buildMessage).join("");
 	}
-	else { 
-		const message = value.text || value.translated || "";
-		const color = value.color || "white";
-		const bold = value.bold || false;
-		const underlined = value.underlined || false;
-		// const end = start.translate(0, message.length);
-		const pos = start.translate(0, -1);
-		const range = new Range(pos, pos);
-		const result = {
-			renderOptions: {
-				after: {
-					contentText: message,
-					color,
-					fontWeight: `${bold ? "bold": "normal"}`,
-					textDecoration: `${underlined ? "underline": "none"}`
-				}
-			},
-			range
-		};
-		return [pos, [result]];
+	else if (typeof value === "string") {
+		return value as string;
+	}
+	else {
+		if (value.text) {
+			return value.text + buildMessage(value.extras || []);
+		}
+		else if (value.translated) {
+			return value.translated + buildMessage(value.extras || []);
+		}
+		else if (value.score) {
+			if (value.score.value) {
+				return value.score.value.toString() + buildMessage(value.extras || []);
+			}
+			else {
+				const name = value.score.name || "scoreboard";
+				const objective = value.score.objective || "objective";
+				return `<${name}:${objective}>` + buildMessage(value.extras || []);
+			}
+		}
+		else if (value.selector) {
+			return `<${value.selector}>` + buildMessage(value.extras || []);
+		}
+		else {
+			return buildMessage(value.extras || []);
+		}
 	}
 }
 
