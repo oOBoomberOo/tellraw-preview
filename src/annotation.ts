@@ -38,24 +38,21 @@ export class LineAnnotation implements Disposable {
 			
 			if (content.startsWith("tellraw")) {
 				const matches = content.match(/\[.+\]|{.+}|".+"/);
-				const messages: Item[] = matches?.map(jsonMapper) as Item[];
+				const message: Item[] = matches?.map(jsonMapper) as Item[];
 				const position = line.range.end;
 
-				for (const message of messages) {
-					const content = buildMessage(message);
-					const range = new Range(position, position);
-					const decoration: DecorationOptions = {
-						renderOptions: {
-							after: {
-								contentText: `=> ${content}`,
-								color: "gray"
-							}
-						},
-						range
-					};
+				const range = new Range(position, position);
+				const decoration: DecorationOptions = {
+					renderOptions: {
+						after: {
+							contentText: `=> ${buildMessage(message)}`,
+							color: "gray"
+						}
+					},
+					range
+				};
 
-					decorations.push(decoration);
-				}
+				decorations.push(decoration);
 			}
 		}
 		editor.setDecorations(annotationDecoration, decorations);
