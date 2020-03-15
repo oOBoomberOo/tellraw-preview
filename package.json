@@ -1,13 +1,20 @@
 {
 	"name": "tellraw-preview",
-	"displayName": "tellraw-preview",
-	"description": "Preview /tellraw message",
+	"displayName": "/tellraw preview",
+	"description": "Preview /tellraw messages",
+	"publisher": "Boomber",
+	"license": "MIT",
 	"version": "0.1.0",
 	"engines": {
 		"vscode": "^1.43.0"
 	},
 	"categories": [
 		"Other"
+	],
+	"keywords": [
+		"minecraft",
+		"command",
+		"chat"
 	],
 	"activationEvents": [
 		"onLanguage:mcfunction"
