@@ -6,7 +6,8 @@ export enum TokenKind {
 	Error,
 	Whitespace,
 	// Any other string value that is not part of the above enums
-	String
+	String,
+	Comment
 }
 
 export class Token {
@@ -44,5 +45,9 @@ export class Token {
 
 	static string(value: string): Token[] {
 		return [new Token(value, TokenKind.String)];
+	}
+
+	static comment(): Token[] {
+		return [new Token("", TokenKind.Comment)];
 	}
 }

@@ -30,6 +30,8 @@ export class LineAnnotation implements Disposable {
 		this._disposable = Disposable.from(
 			vscode.workspace.onDidChangeTextDocument(this.onDidChange, this)
 		);
+
+		this.refresh(window.activeTextEditor);
 	}
 
 	onDidChange() {
@@ -51,6 +53,10 @@ export class LineAnnotation implements Disposable {
 		for (let i = 0; i < lines; i++) {
 			const line = editor.document.lineAt(i);
 			const content = line.text;
+
+			if (content[0] === '#') {
+				continue;
+			}
 
 			if (this.containWhitelistCommand(content)) {
 				const parser = new LineParser(content);
@@ -97,7 +103,7 @@ export class LineAnnotation implements Disposable {
 
 				return decoration;
 			} else if (['tell', 'msg', 'w'].includes(command.value)) {
-				const message = rest.filter(v => v.kind !== TokenKind.Whitespace).slice(1).map(v => v.value).join('');
+				const message = rest.slice(3).map(v => v.value).join('');
 				if (!message) {
 					return null;
 				}

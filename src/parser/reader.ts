@@ -18,6 +18,10 @@ export default class Reader {
 		return this.content[this.cursor++];
 	}
 
+	public forceEnd() {
+		this.cursor = this.content.length;
+	}
+
 	public get isEndOfFile(): boolean {
 		return this.cursor >= this.content.length;
 	}

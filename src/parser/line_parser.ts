@@ -42,9 +42,6 @@ export default class LineParser extends Parser {
 				reader.next();
 				result.push(parse_result);
 			}
-			else if (this.isComment(token)) {
-				break;
-			}
 			else {
 				const [parse_result] = Token.string(token);
 				reader.next();
