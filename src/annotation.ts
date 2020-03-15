@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { TextEditor, DecorationOptions, DecorationRangeBehavior, window, Range, Disposable } from 'vscode';
+import { TextEditor, DecorationOptions, DecorationRangeBehavior, window, Range, Disposable, ThemeColor } from 'vscode';
 import LineParser from './parser/line_parser';
 import { TokenKind, Token } from './parser/token';
 
@@ -91,18 +91,18 @@ export class LineAnnotation implements Disposable {
 				const parsedMessage = JSON.parse(message.value);
 				const builtMessage = this.buildMessage(parsedMessage);
 				const contentText = `=> ${builtMessage.replace(/\n/g, '\\n')}`;
-				const renderOptions = { after: { contentText, color: 'gray', fontStyle: 'regular' } };
+				const renderOptions = { after: { contentText, color: new ThemeColor("tellraw_preview.previewColor"), fontStyle: 'regular' } };
 				const hoverMessage = this.sanitizeMessage(builtMessage).split('\n').map(this.fillLineIfEmpty);
 				const decoration = { renderOptions, hoverMessage, range };
 
 				return decoration;
 			} else if (['tell', 'msg', 'w'].includes(command.value)) {
-				const message = rest.slice(2).map(v => v.value).join('');
+				const message = rest.filter(v => v.kind !== TokenKind.Whitespace).slice(1).map(v => v.value).join('');
 				if (!message) {
 					return null;
 				}
 
-				const renderOptions = { after: { contentText: `=> ${message}`, color: 'gray', fontStyle: 'italic' } };
+				const renderOptions = { after: { contentText: `=> ${message}`, color: new ThemeColor("tellraw_preview.previewColor"), fontStyle: 'italic' } };
 				const hoverMessage = this.sanitizeMessage(message).split('\n').map(this.fillLineIfEmpty);
 				const decoration = { renderOptions, hoverMessage, range };
 				return decoration;
@@ -112,7 +112,7 @@ export class LineAnnotation implements Disposable {
 					return null;
 				}
 				
-				const renderOptions = { after: { contentText: `=> ${message}`, color: 'gray', fontStyle: 'regular' } };
+				const renderOptions = { after: { contentText: `=> ${message}`, color: new ThemeColor("tellraw_preview.previewColor"), fontStyle: 'regular' } };
 				const hoverMessage = this.sanitizeMessage(message).split('\n').map(this.fillLineIfEmpty);
 				const decoration = { renderOptions, hoverMessage, range };
 				return decoration;
@@ -122,7 +122,7 @@ export class LineAnnotation implements Disposable {
 					return null;
 				}
 				
-				const renderOptions = { after: { contentText: `=> * ${message}`, color: 'gray', fontStyle: 'regular' } };
+				const renderOptions = { after: { contentText: `=> * ${message}`, color: new ThemeColor("tellraw_preview.previewColor"), fontStyle: 'regular' } };
 				const hoverMessage = `\\* ${this.sanitizeMessage(message)}`;
 				const decoration = { renderOptions, hoverMessage, range };
 				return decoration;
@@ -132,7 +132,7 @@ export class LineAnnotation implements Disposable {
 					return null;
 				}
 
-				const renderOptions = { after: { contentText: `=> ${message}`, color: 'gray', fontStyle: 'regular' } };
+				const renderOptions = { after: { contentText: `=> ${message}`, color: new ThemeColor("tellraw_preview.previewColor"), fontStyle: 'regular' } };
 				const hoverMessage = this.sanitizeMessage(message);
 				const decoration = { renderOptions, hoverMessage, range };
 				return decoration;
@@ -148,7 +148,7 @@ export class LineAnnotation implements Disposable {
 
 				const parsedMessage = JSON.parse(message.value);
 				const builtMessage = this.buildMessage(parsedMessage);
-				const renderOptions = { after: { contentText: `=> ${builtMessage}`, color: 'gray', fontStyle: 'regular' } };
+				const renderOptions = { after: { contentText: `=> ${builtMessage}`, color: new ThemeColor("tellraw_preview.previewColor"), fontStyle: 'regular' } };
 				const hoverMessage = this.sanitizeMessage(builtMessage);
 				const decoration = { renderOptions, hoverMessage, range };
 				return decoration;
@@ -160,7 +160,7 @@ export class LineAnnotation implements Disposable {
 				renderOptions: {
 					after: {
 						contentText: `Δ ${error.message}`,
-						color: '#AA0000',
+						color: new ThemeColor("tellraw_preview.errorColor"),
 						fontStyle: 'italic'
 					}
 				},

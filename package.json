@@ -10,14 +10,28 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:boomber.test"
+		"onLanguage:mcfunction"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
-		"commands": [
+		"colors": [
 			{
-				"command": "boomber.test",
-				"title": "Test"
+				"id": "tellraw_preview.previewColor",
+				"description": "Color of the preview message",
+				"defaults": {
+					"dark": "#dbdbdb60",
+					"light": "#00000094",
+					"highContrast": "#FFFFFFFF"
+				}
+			},
+			{
+				"id": "tellraw_preview.errorColor",
+				"description": "Color of the error message",
+				"defaults": {
+					"dark": "#d62424a9",
+					"light": "#dd3636c2",
+					"highContrast": "#d30000d5"
+				}
 			}
 		]
 	},
