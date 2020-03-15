@@ -23,7 +23,6 @@ export default class SelectorParser extends Parser {
 				buffer += token.value;
 			}
 			else if (this.isWhitespace(token)) {
-				reader.next();
 				break;
 			}
 		}

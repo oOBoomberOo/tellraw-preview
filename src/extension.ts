@@ -3,14 +3,9 @@
 import * as vscode from 'vscode';
 import { LineAnnotation } from './annotation';
 
-let statusBarItem: vscode.StatusBarItem;
-
 export function activate(context: vscode.ExtensionContext) {
-	const command = vscode.commands.registerCommand("boomber.test", () => {
-		vscode.window.showInformationMessage("OHAYOU SEKAI, GOOD MORNING WORLDDDDD!");
-	});
-	context.subscriptions.push(command);
-	context.subscriptions.push(new LineAnnotation());
+	const disposable = new LineAnnotation();
+	context.subscriptions.push(disposable);
 }
 
 // this method is called when your extension is deactivated

@@ -21,25 +21,34 @@ export default class LineParser extends Parser {
 
 		while (!reader.isEndOfFile) {
 			const token = reader.peek();
-			if (this.isAlphabetic(token)) {
-				const parse_result = new CommandParser().parse(reader);
-				result = result.concat(parse_result);
+			if (this.isNamespace(token)) {
+				const [parse_result] = new CommandParser().parse(reader);
+				result.push(parse_result);
 			}
 			else if (this.isNumeric(token)) {
-				const parse_result = new NumberParser().parse(reader);
-				result = result.concat(parse_result);
+				const [parse_result] = new NumberParser().parse(reader);
+				result.push(parse_result);
 			}
 			else if (token === '@') {
-				const parse_result = new SelectorParser().parse(reader);
-				result = result.concat(parse_result);
+				const [parse_result] = new SelectorParser().parse(reader);
+				result.push(parse_result);
 			}
 			else if (token === '{' || token === '[' || token === `"` || token === `'`) {
-				const parse_result = new NbtParser().parse(reader);
-				result = result.concat(parse_result);
+				const [parse_result] = new NbtParser().parse(reader);
+				result.push(parse_result);
+			}
+			else if (this.isWhitespace(token)) {
+				const [parse_result] = Token.whitespace(token);
+				reader.next();
+				result.push(parse_result);
+			}
+			else if (this.isComment(token)) {
+				break;
 			}
 			else {
-				// Panic!
-				break;
+				const [parse_result] = Token.string(token);
+				reader.next();
+				result.push(parse_result);
 			}
 		}
 

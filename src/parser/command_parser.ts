@@ -6,13 +6,13 @@ export default class CommandParser extends Parser {
 	parse(reader: Reader): Token[] {
 		let buffer = "";
 		while (!reader.isEndOfFile) {
-			const token = reader.next();
+			const token = reader.peek();
 			if (!this.isNamespace(token)) {
 				break;
 			}
 
-			buffer += token;
+			buffer += reader.next();
 		}
-		return [new Token(buffer, TokenKind.Command)];
+		return Token.command(buffer);
 	}
 }

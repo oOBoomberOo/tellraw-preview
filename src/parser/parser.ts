@@ -9,7 +9,7 @@ export default abstract class Parser {
 	}
 
 	public isNamespace(token: string): boolean {
-		return /[a-zA-Z:/\-_]/.test(token);
+		return /[a-zA-Z:/\-_#]/.test(token);
 	}
 
 	public isNumeric(token: string): boolean {
@@ -22,5 +22,9 @@ export default abstract class Parser {
 
 	public isQuote(token: string): boolean {
 		return token === `"` || token === `'`;
+	}
+
+	public isComment(token: string): boolean {
+		return /#/.test(token);
 	}
 }

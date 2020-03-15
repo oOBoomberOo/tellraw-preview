@@ -3,7 +3,10 @@ export enum TokenKind {
 	Selector,
 	Nbt,
 	Number,
-	Error
+	Error,
+	Whitespace,
+	// Any other string value that is not part of the above enums
+	String
 }
 
 export class Token {
@@ -29,5 +32,17 @@ export class Token {
 
 	static nbt(value: string): Token[] {
 		return [new Token(value, TokenKind.Nbt)];
+	}
+
+	static number(value: string): Token[] {
+		return [new Token(value, TokenKind.Number)];
+	}
+
+	static whitespace(value: string): Token[] {
+		return [new Token(value, TokenKind.Whitespace)];
+	}
+
+	static string(value: string): Token[] {
+		return [new Token(value, TokenKind.String)];
 	}
 }
