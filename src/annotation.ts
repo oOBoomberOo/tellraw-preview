@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import { TextEditor, DecorationOptions, DecorationRangeBehavior, window, Range, Disposable } from 'vscode';
+import LineParser from './parser/line_parser';
+import { TokenKind, Token } from './parser/token';
 
 const annotationDecoration = window.createTextEditorDecorationType({
 	after: {
@@ -9,23 +11,36 @@ const annotationDecoration = window.createTextEditorDecorationType({
 	rangeBehavior: DecorationRangeBehavior.ClosedOpen
 });
 
+interface Item {
+	text?: string;
+	translated?: string;
+	score?: { name: string, objective: string, value?: string};
+	selector?: string;
+	extras?: Item[];
+}
+
 export class LineAnnotation implements Disposable {
 	private _disposable: Disposable;
 	private _editor: TextEditor | undefined;
+	private commandWhitelist: string[] = ["tellraw"];
 
 	constructor() {
 		this._disposable = Disposable.from(
 			window.onDidChangeActiveTextEditor(this.onDidChange, this),
-			window.onDidChangeTextEditorSelection(this.onDidChange, this),
+			window.onDidChangeTextEditorSelection(this.onDidChange, this)
 		);
 	}
 
 	onDidChange() {
+		this._editor = window.activeTextEditor;
 		void this.refresh(window.activeTextEditor);
 	}
 
 	refresh(editor: TextEditor | undefined) {
 		if (editor === undefined) {
+			return;
+		}
+		if (!editor.document.isUntitled && !editor.document.fileName.endsWith(".mcfunction")) {
 			return;
 		}
 
@@ -36,26 +51,44 @@ export class LineAnnotation implements Disposable {
 			const line = editor.document.lineAt(i);
 			const content = line.text;
 			
-			if (content.startsWith("tellraw")) {
-				const matches = content.match(/\[.+\]|{.+}|".+"/);
-				const message: Item[] = matches?.map(jsonMapper) as Item[];
-				const position = line.range.end;
+			if (this.containWhitelistCommand(content)) {
+				const parser = new LineParser(content);
+				const result = parser.parse();
+				const index = result.findIndex(this.checkToken, this);
+				if (index !== -1) {
+					const significantToken = result.slice(index);
+					const [_command, _selector, message] = significantToken;
+					const parsedMessage = JSON.parse(message.value);
+					const contentText = `=> ${this.buildMessage(parsedMessage)}`;
+					const range = new Range(line.range.end, line.range.end);
+					const decoration = {
+						renderOptions: {
+							after: {
+								contentText,
+								color: 'gray',
+								fontStyle: 'normal'
+							}
+						},
+						range
+					};
 
-				const range = new Range(position, position);
-				const decoration: DecorationOptions = {
-					renderOptions: {
-						after: {
-							contentText: `=> ${buildMessage(message)}`,
-							color: "gray"
-						}
-					},
-					range
-				};
-
-				decorations.push(decoration);
+					decorations.push(decoration);
+				}
 			}
 		}
 		editor.setDecorations(annotationDecoration, decorations);
+	}
+
+	containWhitelistCommand(content: string): boolean {
+		return this.commandWhitelist.some(command => content.includes(command));
+	}
+
+	checkToken({ kind, value }: Token): boolean {
+		return kind === TokenKind.Command && this.allowPreview(value);
+	}
+
+	allowPreview(command: string): boolean {
+		return this.commandWhitelist.includes(command);
 	}
 
 	clearAnnotations(editor: TextEditor | undefined) {
@@ -67,54 +100,41 @@ export class LineAnnotation implements Disposable {
 	}
 
 	dispose() {
+		console.log("Disposing");
 		this.clearAnnotations(this._editor);
 		this._disposable.dispose();
 	}
-}
 
-function jsonMapper(value: string) {
-	return JSON.parse(value);
-}
-
-interface Item {
-	text?: string;
-	translated?: string;
-	score?: { name: string, objective: string, value?: string};
-	selector?: string;
-	extras?: Item[];
-}
-
-function buildMessage(value: Item | Item[]): string {
-	if (Array.isArray(value)) {
-		return value.map(buildMessage).join("");
-	}
-	else if (typeof value === "string") {
-		return value as string;
-	}
-	else {
-		if (value.text) {
-			return value.text + buildMessage(value.extras || []);
+	buildMessage(value: Item | Item[]): string {
+		if (Array.isArray(value)) {
+			return value.map(this.buildMessage).join("");
 		}
-		else if (value.translated) {
-			return value.translated + buildMessage(value.extras || []);
-		}
-		else if (value.score) {
-			if (value.score.value) {
-				return value.score.value.toString() + buildMessage(value.extras || []);
-			}
-			else {
-				const name = value.score.name || "scoreboard";
-				const objective = value.score.objective || "objective";
-				return `<${name}:${objective}>` + buildMessage(value.extras || []);
-			}
-		}
-		else if (value.selector) {
-			return `<${value.selector}>` + buildMessage(value.extras || []);
+		else if (typeof value === "string") {
+			return value as string;
 		}
 		else {
-			return buildMessage(value.extras || []);
+			if (value.text) {
+				return value.text + this.buildMessage(value.extras || []);
+			}
+			else if (value.translated) {
+				return value.translated + this.buildMessage(value.extras || []);
+			}
+			else if (value.score) {
+				if (value.score.value) {
+					return value.score.value.toString() + this.buildMessage(value.extras || []);
+				}
+				else {
+					const name = value.score.name || "scoreboard";
+					const objective = value.score.objective || "objective";
+					return `<${name}:${objective}>` + this.buildMessage(value.extras || []);
+				}
+			}
+			else if (value.selector) {
+				return `<${value.selector}>` + this.buildMessage(value.extras || []);
+			}
+			else {
+				return this.buildMessage(value.extras || []);
+			}
 		}
 	}
 }
-
-// tellraw @s [{"text": "Hello", "color": "aqua"}, {"text": ", "}, {"text": "World", "color": "red"}]
