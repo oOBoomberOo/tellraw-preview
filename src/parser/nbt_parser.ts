@@ -9,44 +9,38 @@ export default class NbtParser extends Parser {
 
 	parseNbt(reader: Reader): string {
 		let buffer = "";
-		while (!reader.isEndOfFile) {
-			const token = reader.peek();
-			if (token === '[') {
-				buffer += this.parseList(reader);
-				break;
-			}
-			else if (token === '{') {
-				buffer += this.parseObject(reader);
-				break;
-			}
-			else if (this.isAlphabetic(token)) {
-				buffer += this.parseKeyword(reader);
-			}
-			else if (this.isNumeric(token)) {
-				buffer += this.parseNumber(reader);
-			}
-			else if (token === `'`) {
-				buffer += this.parseSingleQuote(reader);
-				break;
-			}
-			else if (token === `"`) {
-				buffer += this.parseDoubleQuote(reader);
-				break;
-			}
-			else if (token === ']' || token === '}' || token === `'` || token === `"`) {
-				break;
-			}
-			else {
-				buffer += reader.next();
-			}
+
+		const token = reader.peek();
+		if (token === '[') {
+			buffer += this.parseList(reader);
 		}
+		else if (token === '{') {
+			buffer += this.parseObject(reader);
+		}
+		else if (this.isAlphabetic(token)) {
+			buffer += this.parseKeyword(reader);
+		}
+		else if (this.isNumeric(token)) {
+			buffer += this.parseNumber(reader);
+		}
+		else if (token === `'`) {
+			buffer += this.parseSingleQuote(reader);
+		}
+		else if (token === `"`) {
+			buffer += this.parseDoubleQuote(reader);
+		}
+		else {
+			buffer += reader.next();
+		}
+
 		return buffer;
 	}
-	
+
 	parseList(reader: Reader): string {
 		let buffer = reader.next();
 		while (!reader.isEndOfFile) {
 			const token = reader.peek();
+
 			if (token === ']') {
 				buffer += reader.next();
 				break;
@@ -59,10 +53,10 @@ export default class NbtParser extends Parser {
 	}
 
 	parseObject(reader: Reader): string {
-		let buffer = "";
-		buffer += reader.next();
+		let buffer = reader.next();
 		while (!reader.isEndOfFile) {
 			const token = reader.peek();
+
 			if (token === '}') {
 				buffer += reader.next();
 				break;
@@ -83,7 +77,8 @@ export default class NbtParser extends Parser {
 				isEscaping = true;
 				buffer += token;
 			}
-			else if (!isEscaping && token === `"`) {
+			
+			if (!isEscaping && token === `"`) {
 				buffer += token;
 				break;
 			}
@@ -104,7 +99,8 @@ export default class NbtParser extends Parser {
 				isEscaping = true;
 				buffer += token;
 			}
-			else if (!isEscaping && token === `'`) {
+			
+			if (!isEscaping && token === `'`) {
 				buffer += token;
 				break;
 			}

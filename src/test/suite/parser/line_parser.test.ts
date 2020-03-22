@@ -42,12 +42,20 @@ suite('LinePaser Test Suite', () => {
 			{ kind: TokenKind.Command, value: '#minecraft:tick' },
 		] as Token[]);
 
-		assert.deepEqual(new LineParser(`tellraw @s [{"text": "Test"}]`).parse(), [
+		assert.deepEqual(new LineParser(`tellraw @s [{"text": "Test #1"}]`).parse(), [
 			{ kind: TokenKind.Command, value: 'tellraw' },
 			{ kind: TokenKind.Whitespace, value: ' ' },
 			{ kind: TokenKind.Selector, value: '@s' },
 			{ kind: TokenKind.Whitespace, value: ' ' },
-			{ kind: TokenKind.Nbt, value: '[{"text": "Test"}]' }
+			{ kind: TokenKind.Nbt, value: '[{"text": "Test #1"}]' }
+		]);
+
+		assert.deepEqual(new LineParser(`tellraw @s [{"text": "Test #2"]`).parse(), [
+			{ kind: TokenKind.Command, value: 'tellraw' },
+			{ kind: TokenKind.Whitespace, value: ' ' },
+			{ kind: TokenKind.Selector, value: '@s' },
+			{ kind: TokenKind.Whitespace, value: ' ' },
+			{ kind: TokenKind.Nbt, value: '[{"text": "Test #2"]' }
 		]);
 	});
 

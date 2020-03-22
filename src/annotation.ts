@@ -28,7 +28,8 @@ export class LineAnnotation implements Disposable {
 
 	constructor() {
 		this._disposable = Disposable.from(
-			vscode.workspace.onDidChangeTextDocument(this.onDidChange, this)
+			vscode.workspace.onDidChangeTextDocument(this.onDidChange, this),
+			vscode.window.onDidChangeActiveTextEditor(this.onDidChange, this)
 		);
 
 		this.refresh(window.activeTextEditor);
