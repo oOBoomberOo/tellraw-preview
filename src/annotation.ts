@@ -214,7 +214,7 @@ export class LineAnnotation implements Disposable {
 		}
 		else {
 			if (value.text) {
-				return value.text + this.buildMessage(value.extras || []);
+				return this.unescapeUnicode(value.text) + this.buildMessage(value.extras || []);
 			}
 			else if (value.translate) {
 				return value.translate + this.buildMessage(value.extras || []);
@@ -250,5 +250,12 @@ export class LineAnnotation implements Disposable {
 			.replace(/</g, '\\<')
 			.replace(/>/g, '\\>')
 			.replace(/\*/g, '\\*');
+	}
+
+	// Unescape escape Unicode characters
+	unescapeUnicode(s: string): string {
+		return s.replace(/\\u([a-fA-F0-9]{4})/g, function (_, group) {
+			return String.fromCharCode(parseInt(group, 16));
+		});
 	}
 }
