@@ -4,7 +4,7 @@
 	"description": "Preview /tellraw messages",
 	"publisher": "actuallyboomber",
 	"license": "MIT",
-	"version": "0.2.1",
+	"version": "0.2.2",
 	"engines": {
 		"vscode": "^1.43.0"
 	},
@@ -62,5 +62,13 @@
 		"mocha": "^7.0.1",
 		"typescript": "^3.7.5",
 		"vscode-test": "^1.3.0"
+	},
+	"contributors": [
+		"oOBoomberOo",
+		"book000"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/oOBoomberOo/tellraw-preview"
 	}
 }
