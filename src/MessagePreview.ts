@@ -1,37 +1,31 @@
-import { DecorationOptions } from "vscode";
-import { ParseResult } from "./CommandParser";
+import { DecorationOptions, Range } from "vscode";
+import { Command, Node } from "./parser/CommandParser";
+import { JSON_MESSAGE, PatternMatchResult } from "./pattern/CommandPattern";
+import { parseJsonMessage, interpretMessage } from "./JsonInterpreter";
 
-export function showPreview(parseResult: ParseResult): DecorationOptions[] {
-    if (parseResult.type === "command") {
+function of(opts: DecorationOptions): DecorationOptions[] {
+    return [opts];
+}
+
+type MatchResultWithRange = PatternMatchResult & { range: Range };
+
+export function showPreview(opt: MatchResultWithRange): DecorationOptions[] {
+    const { map, range } = opt;
+
+    const message = map.get(JSON_MESSAGE);
+
+    if (!message) {
         return [];
     }
 
-    if (parseResult.type === "error") {
-        return [
-            {
-                range: parseResult.range,
-                renderOptions: {
-                    after: {
-                        contentText: parseResult.value,
-                    },
-                },
-            },
-        ];
-    }
+    const result = interpretMessage(parseJsonMessage(message));
 
-    return [
-        {
-            range: parseResult.range,
-            renderOptions: {
-                after: {
-                    contentText: parseResult.value,
-                },
+    return of({
+        range,
+        renderOptions: {
+            after: {
+                contentText: result,
             },
         },
-    ];
-}
-
-interface Text {
-    color: string;
-    text: string;
+    });
 }

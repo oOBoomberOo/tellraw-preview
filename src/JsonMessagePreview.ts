@@ -5,8 +5,9 @@ import {
     window,
 } from "vscode";
 import * as vscode from "vscode";
-import { parseFunction } from "./CommandParser";
 import { showPreview } from "./MessagePreview";
+import { parseFunction } from "./parser/CommandParser";
+import { matchCommand, PatternMatchResult } from "./pattern/CommandPattern";
 
 const previewDecoration = window.createTextEditorDecorationType({
     after: {
@@ -47,7 +48,15 @@ export class JsonMessagePreview implements Disposable {
 
     previewDocument(editor: vscode.TextEditor) {
         const document = editor.document;
-        const previewOptions = parseFunction(document).flatMap(showPreview);
+
+        const commands = parseFunction(document.getText());
+
+        const previewOptions = commands
+            .map((command) => matchCommand(command))
+            .filter((result) => result !== null)
+            .map(withRange(document))
+            .flatMap(showPreview);
+
         editor.setDecorations(previewDecoration, previewOptions);
         console.log("Previewing document");
     }
@@ -56,3 +65,9 @@ export class JsonMessagePreview implements Disposable {
         this._disposable.dispose();
     }
 }
+
+const withRange = (document: TextDocument) => (match: PatternMatchResult) => {
+    const pos = document.positionAt(match.nodes[0].index);
+    const range = document.lineAt(pos.line).range;
+    return { ...match, range };
+};
