@@ -34,7 +34,13 @@ describe("CommandParser", function () {
             type: "object",
             content: `{foo:"bar"}`,
             index: 0,
-            elements: [{ type: "string", index: 5, content: `"bar"` }],
+            elements: [
+                { type: "literal", index: 0, content: "{" },
+                { type: "literal", index: 1, content: "foo" },
+                { type: "literal", index: 4, content: ":" },
+                { type: "string", index: 5, content: `"bar"` },
+                { type: "literal", index: 10, content: "}" },
+            ],
         };
 
         assert.deepEqual(a, b);
@@ -89,12 +95,18 @@ describe("CommandParser", function () {
                         content:
                             '{\\\n    "text": "Hello World", \\\n    "color": "red" \\\n}',
                         elements: [
+                            { type: "literal", index: 30, content: "{" },
+                            { type: "string", index: 37, content: `"text"` },
+                            { type: "literal", index: 43, content: ":" },
                             {
                                 type: "string",
                                 content: `"Hello World"`,
                                 index: 45,
                             },
+                            { type: "string", index: 66, content: `"color"` },
+                            { type: "literal", index: 73, content: ":" },
                             { type: "string", content: `"red"`, index: 75 },
+                            { type: "literal", index: 83, content: "}" },
                         ],
                         index: 30,
                     },
